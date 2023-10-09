@@ -1,52 +1,57 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def compute_trajectory(r_0, theta_0, t, k):
+def compute_trajectory(r_0, theta_0, t_max, dt):
     """
-    Compute the trajectory of a particle in a flow field defined in cylindrical coordinates.
+    Computes the trajectory of a particle in a velocity field defined in polar coordinates.
 
     Parameters:
-    - r_0 (float): initial radial distance of the particle.
-    - theta_0 (float): initial angle of the particle.
-    - t (float or np.array): time or time points at which the position is calculated.
-    - k (float): a constant defined in the flow field equations.
-
+    - r_0: initial radial distance
+    - theta_0: initial angular position
+    - t_max: maximum time for computation
+    - dt: time step size
+    
     Returns:
-    - r_t (float or np.array): radial position(s) of the particle at time t.
-    - theta_t (float or np.array): angular position(s) of the particle at time t.
+    - x_vals, y_vals: x and y coordinates of the particle's position over time
     """
-    r_t = r_0
-    theta_t = theta_0 + k * t / (2 * np.pi * r_0)
-    return r_t, theta_t
+    times = np.arange(0, t_max, dt)
+    theta_vals = theta_0 + times / (2 * np.pi * r_0)
+    r_vals = r_0 * np.ones_like(times)
+    
+    x_vals = r_vals * np.cos(theta_vals)
+    y_vals = r_vals * np.sin(theta_vals)
+    
+    return x_vals, y_vals
 
-def plot_trajectories(t, r_0_values, k):
+def plot_trajectory(r_0_values, theta_0, t_max, dt):
     """
-    Plot the trajectories of particles in a polar plot.
-    
+    Plots the trajectory of a particle based on the specified initial conditions and time parameters.
+
     Parameters:
-    - t (float): time point up to which to plot the trajectories.
-    - r_0_values (list of float): initial radial distances for which to plot the trajectories.
-    - k (float): a constant defined in the flow field equations.
+    - r_0_values: list of initial radial distances
+    - theta_0: initial angular position
+    - t_max: maximum time for computation
+    - dt: time step size
     """
-    # Create a polar subplot
-    ax = plt.subplot(111, projection='polar')
+    plt.figure(figsize=(8, 8))
     
-    # For each initial radial distance
     for r_0 in r_0_values:
-        theta_0 = 0  # initial angular position
-        r_t, theta_t = compute_trajectory(r_0, theta_0, t, k)
-        
-        # Plotting
-        ax.plot([theta_0, theta_t], [r_0, r_t], label=f"$r_0$ = {r_0}")
-    
-    ax.set_title("Trajectories of Particles ($t$ = {:.2f})".format(t))
-    ax.legend()
+        x_vals, y_vals = compute_trajectory(r_0, theta_0, t_max, dt)
+        plt.plot(x_vals, y_vals, label=f'$r_0$ = {r_0}')
+
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Particle Trajectories in a Velocity Field')
+    plt.legend()
+    plt.grid(True)
+    plt.axis('equal')
     plt.show()
 
-# Constants and Parameters
-k = 1
-t = 3  # time up to which trajectories are plotted
-r_0_values = [0.2, 0.3, 0.4, 0.5]  # initial radial distances
+# Given/Assumed Values
+r_0_values = [0.2, 0.3, 0.4, 0.5]
+theta_0 = 0  # Assuming an initial angle of 0 for simplicity
+t_max = 3  # Maximum time
+dt = 0.01  # Time step
 
-# Plotting
-plot_trajectories(t, r_0_values, k)
+# Plotting the trajectory
+plot_trajectory(r_0_values, theta_0, t_max, dt)
