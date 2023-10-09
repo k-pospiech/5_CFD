@@ -45,7 +45,7 @@ def plot_trajectories(t, r_0_values, k):
 
 # Constants and Parameters
 k = 1
-t = 0.24  # time up to which trajectories are plotted
+t = 3  # time up to which trajectories are plotted
 r_0_values = [0.2, 0.3, 0.4, 0.5]  # initial radial distances
 
 # Plotting
