@@ -1,21 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def compute_trajectory(r_0, theta_0, t_max, dt):
+def compute_trajectory(r_0, theta_0, t_max, dt, Gamma):
     """
-    Computes the trajectory of a particle in a velocity field defined in polar coordinates.
-
-    Parameters:
-    - r_0: initial radial distance
-    - theta_0: initial angular position
-    - t_max: maximum time for computation
-    - dt: time step size
+    Compute the trajectory of a particle in a velocity field defined in polar coordinates.
     
+    Parameters:
+        r_0 (float): Initial radial distance.
+        theta_0 (float): Initial angular position in radians.
+        t_max (float): Maximum time for computation.
+        dt (float): Time step size.
+        Gamma (float): Angular velocity coefficient.
+        
     Returns:
-    - x_vals, y_vals: x and y coordinates of the particle's position over time
+        tuple: x and y coordinates (NumPy arrays) of the particle's position over time.
     """
     times = np.arange(0, t_max, dt)
-    theta_vals = theta_0 + times / (2 * np.pi * r_0)
+    theta_vals = theta_0 + Gamma * times / (2 * np.pi * r_0**2)
     r_vals = r_0 * np.ones_like(times)
     
     x_vals = r_vals * np.cos(theta_vals)
@@ -23,20 +24,23 @@ def compute_trajectory(r_0, theta_0, t_max, dt):
     
     return x_vals, y_vals
 
-def plot_trajectory(r_0_values, theta_0, t_max, dt):
+# Additional comments and descriptions have been added for clarity.
+
+def plot_trajectory(r_0_values, theta_0, t_max, dt, Gamma):
     """
-    Plots the trajectory of a particle based on the specified initial conditions and time parameters.
+    Plot the trajectory of a particle for different initial radial distances.
 
     Parameters:
-    - r_0_values: list of initial radial distances
-    - theta_0: initial angular position
-    - t_max: maximum time for computation
-    - dt: time step size
+        r_0_values (list of float): Initial radial distances.
+        theta_0 (float): Initial angular position in radians.
+        t_max (float): Maximum time for computation.
+        dt (float): Time step size.
+        Gamma (float): Angular velocity coefficient.
     """
     plt.figure(figsize=(8, 8))
     
     for r_0 in r_0_values:
-        x_vals, y_vals = compute_trajectory(r_0, theta_0, t_max, dt)
+        x_vals, y_vals = compute_trajectory(r_0, theta_0, t_max, dt, Gamma)
         plt.plot(x_vals, y_vals, label=f'$r_0$ = {r_0}')
 
     plt.xlabel('x')
@@ -50,8 +54,9 @@ def plot_trajectory(r_0_values, theta_0, t_max, dt):
 # Given/Assumed Values
 r_0_values = [0.2, 0.3, 0.4, 0.5]
 theta_0 = 0  # Assuming an initial angle of 0 for simplicity
-t_max = 3  # Maximum time
+t_max = 0.24  # Maximum time
 dt = 0.01  # Time step
+Gamma = 2*np.pi # Angular velocity coefficient
 
-# Plotting the trajectory
-plot_trajectory(r_0_values, theta_0, t_max, dt)
+# Updated to include Gamma in function call
+plot_trajectory(r_0_values, theta_0, t_max, dt, Gamma)
