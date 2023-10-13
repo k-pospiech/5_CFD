@@ -3,12 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-# Given parameters
-U_inf = 1  # Freestream velocity [unit]
-L = 1  # Some length scale [unit]
+# # Given parameters
+# U_inf = 1  # Freestream velocity [unit]
+# L = 1  # Some length scale [unit]
 
 # Define symbolic variables
-x, y = sp.symbols('x y')
+x, y, U_inf, L = sp.symbols('x y U_inf L')
 
 # Define the velocity field in Cartesian coordinates
 U = U_inf * (1 + L*x/(x**2 + y**2))
@@ -23,48 +23,40 @@ L_c = L  # Example, this might depend on problem insight [unit]
 U_c = U_inf  # Example, this might depend on problem insight [unit]
 
 # Define dimensionless variables
-x_bar, y_bar = x/L_c, y/L_c
-U_bar = U/U_c
-V_bar = V/U_c
+# x_prime, y_prime = x/L, y/L
+# U_prime, V_prime = U/U_c, V/V_c
 
-# ODE for streamline in dimensionless coordinates
-def streamline_ODE(t, Y):
-    # Extract coordinates from the current position Y
-    x, y = Y
+# Define symbolic variables
+x_prime, y_prime = sp.symbols('x_prime y_prime')
+U_prime = (1 + x_prime/(x_prime**2 + y_prime**2))
+V_prime = (y_prime/(x_prime**2 + y_prime**2))
 
-    # Calculate dimensionless velocities U' and V'
-    U_prime = U_bar.subs({x_bar: x, y_bar: y}).evalf()
-    V_prime = V_bar.subs({x_bar: x, y_bar: y}).evalf()
+# Find stagnation points in dimensionless coordinates
+stagnation_points_prime = sp.solve([U_prime, V_prime], (x_prime, y_prime))
+print(f"Dimensionless Stagnation Points: {stagnation_points_prime}")
 
-    # Return the dimensionless velocities
-    return [U_prime, V_prime]
+# Define the streamline ODE
+def streamline_ODE(t, z):
+    x_val, y_val = z
+    U_val = float(U_prime.subs({x_prime: x_val, y_prime: y_val}))
+    V_val = float(V_prime.subs({x_prime: x_val, y_prime: y_val}))
+    return [U_val, V_val]
 
+# Initial condition very close to stagnation point
+z0 = [-0.999, 0.5]
+t_eval = np.linspace(0, 5, 1000)
 
-def plot_dimensionless_streamlines(x0_values, y0_values, t_max=10):
-    plt.figure(figsize=(8, 8))
-    
-    for x0, y0 in zip(x0_values, y0_values):
-        sol = solve_ivp(streamline_ODE, [0, t_max], [x0, y0], t_eval=np.linspace(0, t_max, 1000))
-        plt.plot(sol.y[0], sol.y[1], label=f'Initial Point: ({x0}, {y0})')
+# Solve the ODE
+sol = solve_ivp(streamline_ODE, [0, 5], z0, t_eval=t_eval)
 
-    # Adding radial lines near origin
-    theta = np.linspace(0, 2*np.pi, 100)
-    for r in [0.1, 0.2, 0.3, 0.4]:
-        plt.plot(r * np.cos(theta), r * np.sin(theta), 'k--')
-    
-    plt.xlabel('x\'')
-    plt.ylabel('y\'')
-    plt.title('Dimensionless Streamlines')
-    plt.legend()
-    plt.grid(True)
-    plt.axis
-
-# Example initial points
-x0_values = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2]
-y0_values = [0, 0, 0, 0, 0, 0, 0, 0]
-
-# Plotting the streamlines
-plot_dimensionless_streamlines(x0_values, y0_values)
-
-# Display the figure
+# Plotting the streamline
+plt.figure(figsize=(10,10))
+plt.plot(sol.y[0], sol.y[1], 'b', label='Streamline')
+plt.scatter([-1], [0], color='red', s=100, label='Stagnation Point (-1,0)')
+plt.xlabel('x_prime')
+plt.ylabel('y_prime')
+plt.title('Dimensionless Streamline Radiating from Stagnation Point')
+plt.legend()
+plt.grid(True)
+plt.axis('equal')
 plt.show()
