@@ -1,40 +1,40 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Parameters
-R = 1 # Assume a value for R; we're using dimensionless units so R = 1 is appropriate
+# Given initial conditions
+r0_values = [8]
+theta0_values = [np.pi - 0.01, np.pi + 0.01, np.pi + 0.05, np.pi - 0.05, np.pi + 0.1, np.pi - 0.1]
 
-# Define the dimensionless velocities
-def Ur(r, theta):
-    return (1 - 1/r**2) * np.cos(theta) 
+# Set up the plot
+plt.figure(figsize=(10, 6))
 
-def Utheta(r, theta):
-    return -(1 + 1/r**2) * np.sin(theta)
+# Integration settings
+delta_xi = 0.01
+xi_values = np.arange(0, 10, delta_xi)
 
-# Determine stagnation points by setting both velocities to zero
-def stagnation_points():
-    # For Ur = 0:
-    r_values = [1, 1]
-    theta_values = [0, np.pi]
-    
-    return r_values, theta_values
+for r0 in r0_values:
+    for theta0 in theta0_values:
+        r_values = [r0]
+        theta_values = [theta0]
+        for xi in xi_values[1:]:
+            # Euler forward method
+            dr_dxi = (1 - 1 / r_values[-1]**2) * np.cos(theta_values[-1])
+            dtheta_dxi = -(1 + 1 / r_values[-1]**2) * np.sin(theta_values[-1])
+            
+            r_new = r_values[-1] + delta_xi * dr_dxi
+            theta_new = theta_values[-1] + delta_xi * dtheta_dxi
+            
+            r_values.append(r_new)
+            theta_values.append(theta_new)
+            
+        x_values = [r * np.cos(theta) for r, theta in zip(r_values, theta_values)]
+        y_values = [r * np.sin(theta) for r, theta in zip(r_values, theta_values)]
+        
+        plt.plot(x_values, y_values)
 
-# Plotting 
-theta = np.linspace(0, 2*np.pi, 200)
-r = np.linspace(0.1, 2, 200)
-R, Theta = np.meshgrid(r, theta)
-
-U_R = Ur(R, Theta)
-U_Theta = Utheta(R, Theta)
-
-fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-ax.quiver(Theta, R, U_R, R*U_Theta)  # Plotting the velocity vectors
-
-# Stagnation points
-r_stag, theta_stag = stagnation_points()
-ax.plot(theta_stag, r_stag, 'ro')  # Red dots for stagnation points
-
-# Streamline for r'=1
-ax.plot([0, 2*np.pi], [1, 1], 'g--')  # Dashed green line for streamline
-
+plt.xlabel("x'")
+plt.ylabel("y'")
+plt.title("Numerically Integrated Streamlines")
+plt.grid(True)
+plt.axis("equal")
 plt.show()
