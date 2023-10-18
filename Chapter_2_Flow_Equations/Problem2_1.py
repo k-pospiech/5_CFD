@@ -1,49 +1,37 @@
-def jet_deflector_calculations(U1, h1, h2, alpha_degrees, rho=1000, pa=101325):
-    """
-    Calculates the velocity U2 and the forces exerted on a jet deflector.
+import numpy as np
 
+def jet_deflector_calculations(U1, h1, h2, alpha, rho, pa):
+    """
     Parameters:
-    - U1: Initial velocity of the fluid (m/s)
-    - h1: Initial height of the jet (m)
-    - h2: Height of the jet after deflection (m)
-    - alpha_degrees: Deflection angle in degrees
-    - rho: Density of the fluid (default is 1000 kg/m^3 for water)
-    - pa: Atmospheric pressure (default is 101325 Pa)
+    U1: Incoming velocity at section 1 (m/s)
+    h1: Height of the jet at section 1 (m)
+    h2: Height of the jet at section 2 (m)
+    alpha: Angle between the jet at section 2 and horizontal (radians)
+    rho: Density of the fluid (kg/m^3)
+    pa: Ambient pressure (Pa)
 
     Returns:
-    - U2: Velocity of the fluid after deflection (m/s)
-    - F_net_x: Net force in the x-direction (N)
-    - F_net_y: Net force in the y-direction (N)
+    U2: Velocity at section 2 (m/s)
+    Fx: Force exerted in the x-direction (N)
+    Fy: Force exerted in the y-direction (N)
     """
-    import math
+    
+    # Using conservation of mass to determine U2
+    U2 = (U1 * h1) / h2
 
-    # Convert angle to radians
-    alpha = math.radians(alpha_degrees)
+    # Using momentum equation in x and y directions
+    Fx = (rho * U2**2 * h2 * np.cos(alpha)) - (rho * U1**2 * h1)
+    Fy = (rho * U2**2 * h2 * np.sin(alpha)) + (pa * h1) - (pa * h2)
 
-    # Calculate U2 from conservation of mass
-    U2 = (h1 / h2) * U1
+    return U2, Fx, Fy
 
-    # Calculate momentum forces
-    m_dot = rho * h1 * U1  # Mass flow rate
-    Fx = m_dot * U2 * math.cos(alpha) - m_dot * U1
-    Fy = m_dot * U2 * math.sin(alpha)
+# Example Usage
+U1 = 5.0  # Example incoming velocity in m/s
+h1 = 0.1  # Example height at section 1 in m
+h2 = 0.08  # Example height at section 2 in m
+alpha = np.radians(30)  # Example angle in radians (converted from 30 degrees)
+rho = 1000  # Density of water in kg/m^3
+pa = 101325  # Atmospheric pressure in Pa
 
-    # Calculate pressure forces
-    F_pressure_y = pa * h1
-
-    # Calculate net forces to hold the deflector in place
-    F_net_x = -Fx
-    F_net_y = -(Fy + F_pressure_y)
-
-    return U2, F_net_x, F_net_y
-
-# Example usage:
-U1 = 10  # m/s, just a sample value
-h1 = 0.05  # m, just a sample value
-h2 = 0.03  # m, just a sample value
-alpha_degrees = 30  # degrees, just a sample value
-
-U2, F_net_x, F_net_y = jet_deflector_calculations(U1, h1, h2, alpha_degrees)
-print(f"U2: {U2:.2f} m/s")
-print(f"F_net_x: {F_net_x:.2f} N")
-print(f"F_net_y: {F_net_y:.2f} N")
+U2, Fx, Fy = jet_deflector_calculations(U1, h1, h2, alpha, rho, pa)
+print(f"U2: {U2} m/s, Fx: {Fx} N, Fy: {Fy} N")
