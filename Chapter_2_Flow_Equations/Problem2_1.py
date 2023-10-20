@@ -1,37 +1,40 @@
-import numpy as np
+import math
 
-def jet_deflector_calculations(U1, h1, h2, alpha, rho, pa):
-    """
-    Parameters:
-    U1: Incoming velocity at section 1 (m/s)
-    h1: Height of the jet at section 1 (m)
-    h2: Height of the jet at section 2 (m)
-    alpha: Angle between the jet at section 2 and horizontal (radians)
-    rho: Density of the fluid (kg/m^3)
-    pa: Ambient pressure (Pa)
-
-    Returns:
-    U2: Velocity at section 2 (m/s)
-    Fx: Force exerted in the x-direction (N)
-    Fy: Force exerted in the y-direction (N)
-    """
+def jet_deflector_forces(rho, U1, h1, h2, p1, p2, pa, alpha_deg):
+    # Convert alpha from degrees to radians
+    alpha = math.radians(alpha_deg)
     
-    # Using conservation of mass to determine U2
-    U2 = (U1 * h1) / h2
+    # Conservation of mass to find U2
+    U2 = U1 * (h1/h2)
+    
+    # Y-direction forces
+    Y_momentum_2 = rho * U2**2 * h2 * math.sin(alpha)
+    Y_pressure_force = (p2 - pa) * h2 * math.sin(alpha)
+    Fy_fluid = Y_momentum_2 + Y_pressure_force
+    
+    # X-direction forces
+    X_momentum_1 = -rho * U1**2 * h1
+    X_pressure_force_1 = (pa - p1) * h1
+    X_momentum_2 = rho * U2**2 * h2 * math.cos(alpha)
+    X_pressure_force_2 = (p2 - pa) * h2 * math.cos(alpha)
+    Fx_fluid = X_momentum_1 + X_pressure_force_1 + X_momentum_2 - X_pressure_force_2
+    
+    # Forces that must be externally exerted on the deflector to hold it in place
+    Fx_external = -Fx_fluid
+    Fy_external = -Fy_fluid
+    
+    return Fx_external, Fy_external
 
-    # Using momentum equation in x and y directions
-    Fx = (rho * U2**2 * h2 * np.cos(alpha)) - (rho * U1**2 * h1)
-    Fy = (rho * U2**2 * h2 * np.sin(alpha)) + (pa * h1) - (pa * h2)
+# Example usage:
+rho = 1000  # Density in kg/m^3, example value
+U1 = 10     # Velocity at station 1 in m/s, example value
+h1 = 0.1    # Height at station 1 in m, example value
+h2 = 0.2    # Height at station 2 in m, example value
+p1 = 100000 # Pressure at station 1 in Pa, example value
+p2 = 90000  # Pressure at station 2 in Pa, example value
+pa = 101325 # Ambient pressure in Pa, example value
+alpha_deg = 30  # Angle in degrees, example value
 
-    return U2, Fx, Fy
-
-# Example Usage
-U1 = 5.0  # Example incoming velocity in m/s
-h1 = 0.1  # Example height at section 1 in m
-h2 = 0.08  # Example height at section 2 in m
-alpha = np.radians(30)  # Example angle in radians (converted from 30 degrees)
-rho = 1000  # Density of water in kg/m^3
-pa = 101325  # Atmospheric pressure in Pa
-
-U2, Fx, Fy = jet_deflector_calculations(U1, h1, h2, alpha, rho, pa)
-print(f"U2: {U2} m/s, Fx: {Fx} N, Fy: {Fy} N")
+Fx, Fy = jet_deflector_forces(rho, U1, h1, h2, p1, p2, pa, alpha_deg)
+print(f"Externally exerted force in X-direction: {Fx} N")
+print(f"Externally exerted force in Y-direction: {Fy} N")
