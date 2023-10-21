@@ -2,15 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def u(x, y, q_prime):
-    return 1 + q_prime * (y / (x**2 + y**2))
+    r2 = x**2 + y**2
+    if r2 == 0:  # Avoid division by zero
+        return 0
+    return 1 + q_prime * (y / r2)
 
 def v(x, y, q_prime):
-    return -q_prime * (x / (x**2 + y**2))
+    r2 = x**2 + y**2
+    if r2 == 0:  # Avoid division by zero
+        return 0
+    return -q_prime * (x / r2)
 
-def generate_streamline(x0, y0, q_prime, delta_t, t_range):
+def generate_streamline(x0, y0, q_prime, delta_t, steps):
     x_vals, y_vals = [x0], [y0]
-
-    for t in t_range:
+    
+    for _ in range(steps):
         dx_dt = u(x_vals[-1], y_vals[-1], q_prime)
         dy_dt = v(x_vals[-1], y_vals[-1], q_prime)
 
@@ -26,13 +32,16 @@ def generate_streamline(x0, y0, q_prime, delta_t, t_range):
 q_primes = [1.0, 0.1, 0.01, 0.001]
 anchor_points = [(-2, 10**-6), (-2, -10**-6), (-2, 0.25), (-2.1, 0), (-2, 0.5), (-2, -0.5)]
 delta_t = 4e-4
-t_values = np.linspace(-2, 2, int(4/delta_t))
+
+# Parameters for streamline generation
+start, end = -2, 2
+num_steps = int((end - start) / delta_t)
 
 plt.figure(figsize=(10, 6))
 
 for q_prime in q_primes:
     for point in anchor_points:
-        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, t_values)
+        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, num_steps)
         plt.plot(x_vals, y_vals, label=f"Start: {point}, q': {q_prime}")
 
 plt.title('Streamlines for Different q\' values and Starting Points')
@@ -62,7 +71,7 @@ def pressure_coefficient(x, y, q_prime):
 plt.figure(figsize=(10, 6))
 for q_prime in q_primes:
     for point in anchor_points:
-        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, t_values)
+        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, num_steps)
         V_prime_vals = [velocity_modulus(x, y, q_prime) for x, y in zip(x_vals, y_vals)]
         plt.plot(x_vals, V_prime_vals, label=f"Start: {point}, q': {q_prime}")
 
@@ -77,7 +86,7 @@ plt.show()
 plt.figure(figsize=(10, 6))
 for q_prime in q_primes:
     for point in anchor_points:
-        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, t_values)
+        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, num_steps)
         Cp_vals = [pressure_coefficient(x, y, q_prime) for x, y in zip(x_vals, y_vals)]
         plt.plot(x_vals, Cp_vals, label=f"Start: {point}, q': {q_prime}")
 
