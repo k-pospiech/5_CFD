@@ -1,98 +1,56 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import sympy as sp
 
-def u(x, y, q_prime):
-    r2 = x**2 + y**2
-    if r2 == 0:  # Avoid division by zero
-        return 0
-    return 1 + q_prime * (y / r2)
+# User Parameters (Input Section)
+q_val = 1.0  # Dimensionless source strength
+dt = 4.0E-4  # Time step
+x_start, y_start = -2, -10**-6  # Initial point
+n_steps = 10  # Number of integration steps
 
-def v(x, y, q_prime):
-    r2 = x**2 + y**2
-    if r2 == 0:  # Avoid division by zero
-        return 0
-    return -q_prime * (x / r2)
+# Define the symbolic variables
+x_prime, y_prime, q_prime = sp.symbols('x_prime y_prime q_prime')
 
-def generate_streamline(x0, y0, q_prime, delta_t, steps):
-    x_vals, y_vals = [x0], [y0]
+# Dimensionless velocities as derived
+u_prime_expr = 1 + q_prime/2 * (
+    (x_prime + 1) / ((x_prime + 1)**2 + y_prime**2) - 
+    (x_prime - 1) / ((x_prime - 1)**2 + y_prime**2)
+)
     
-    for _ in range(steps):
-        dx_dt = u(x_vals[-1], y_vals[-1], q_prime)
-        dy_dt = v(x_vals[-1], y_vals[-1], q_prime)
+v_prime_expr = q_prime * y_prime / 2 * (
+    1 / ((x_prime + 1)**2 + y_prime**2) - 
+    1 / ((x_prime - 1)**2 + y_prime**2)
+)
 
-        new_x = x_vals[-1] + dx_dt * delta_t
-        new_y = y_vals[-1] + dy_dt * delta_t
+# Forward Euler update for streamline calculation
+def euler_step(x, y, dt, q_val):
+    u_val = float(u_prime_expr.subs({x_prime: x, y_prime: y, q_prime: q_val}))
+    v_val = float(v_prime_expr.subs({x_prime: x, y_prime: y, q_prime: q_val}))
+    x_new = x + dt * u_val
+    y_new = y + dt * v_val
+    return x_new, y_new
 
-        x_vals.append(new_x)
-        y_vals.append(new_y)
+# Integrate for streamline points
+path = [(x_start, y_start)]
+V_prime_values = []
+Cp_values = []
 
-    return x_vals, y_vals
+for _ in range(n_steps):
+    x_current, y_current = path[-1]
+    
+    # Compute velocities and modulus
+    u_prime_val = u_prime_expr.subs({x_prime: x_current, y_prime: y_current, q_prime: q_val})
+    v_prime_val = v_prime_expr.subs({x_prime: x_current, y_prime: y_current, q_prime: q_val})
+    V_prime = sp.sqrt(u_prime_val**2 + v_prime_val**2)
+    
+    # Compute pressure coefficient
+    Cp = 1 - V_prime**2
+    V_prime_values.append(float(V_prime))
+    Cp_values.append(float(Cp))
+    
+    # Compute next coordinates using Euler's method
+    next_x, next_y = euler_step(x_current, y_current, dt, q_val)
+    path.append((next_x, next_y))
 
-# Parameters
-q_primes = [1.0, 0.1, 0.01, 0.001]
-anchor_points = [(-2, 10**-6), (-2, -10**-6), (-2, 0.25), (-2.1, 0), (-2, 0.5), (-2, -0.5)]
-delta_t = 4e-4
-
-# Parameters for streamline generation
-start, end = -2, 2
-num_steps = int((end - start) / delta_t)
-
-plt.figure(figsize=(10, 6))
-
-for q_prime in q_primes:
-    for point in anchor_points:
-        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, num_steps)
-        plt.plot(x_vals, y_vals, label=f"Start: {point}, q': {q_prime}")
-
-plt.title('Streamlines for Different q\' values and Starting Points')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.grid(True)
-plt.legend()
-plt.show()
-
-def velocity_modulus(x, y, q_prime):
-    u_val = u(x, y, q_prime)
-    v_val = v(x, y, q_prime)
-    return np.sqrt(u_val**2 + v_val**2)
-
-def pressure_coefficient(x, y, q_prime):
-    rho = 1  # Assuming a unit density for the fluid
-    P_inf = 0  # Far field pressure
-    U_inf = 1  # Free stream velocity
-
-    V_prime = velocity_modulus(x, y, q_prime)
-    P = P_inf + 0.5 * rho * U_inf**2 - 0.5 * rho * V_prime**2
-    Cp = 2 * (P - P_inf) / (rho * U_inf**2)
-
-    return Cp
-
-# Velocity Modulus
-plt.figure(figsize=(10, 6))
-for q_prime in q_primes:
-    for point in anchor_points:
-        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, num_steps)
-        V_prime_vals = [velocity_modulus(x, y, q_prime) for x, y in zip(x_vals, y_vals)]
-        plt.plot(x_vals, V_prime_vals, label=f"Start: {point}, q': {q_prime}")
-
-plt.title('Velocity Modulus for Different q\' values and Starting Points')
-plt.xlabel('x')
-plt.ylabel('Velocity Modulus')
-plt.grid(True)
-plt.legend()
-plt.show()
-
-# Pressure Coefficient
-plt.figure(figsize=(10, 6))
-for q_prime in q_primes:
-    for point in anchor_points:
-        x_vals, y_vals = generate_streamline(point[0], point[1], q_prime, delta_t, num_steps)
-        Cp_vals = [pressure_coefficient(x, y, q_prime) for x, y in zip(x_vals, y_vals)]
-        plt.plot(x_vals, Cp_vals, label=f"Start: {point}, q': {q_prime}")
-
-plt.title('Pressure Coefficient for Different q\' values and Starting Points')
-plt.xlabel('x')
-plt.ylabel('Cp')
-plt.grid(True)
-plt.legend()
-plt.show()
+# Print the results
+for i in range(n_steps):
+    x, y = path[i]
+    print(f"Step {i+1}: Coordinate (x', y') = ({x:.5f}, {y:.5f}), Velocity Modulus V' = {V_prime_values[i]:.5f}, Pressure Coefficient Cp = {Cp_values[i]:.5f}")
