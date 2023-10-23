@@ -4,7 +4,8 @@ import sympy as sp
 q_val = 1.0  # Dimensionless source strength
 dt = 4.0E-4  # Time step
 x_start, y_start = -2, -10**-6  # Initial point
-n_steps = 10  # Number of integration steps
+n_steps = 26000  # Number of integration steps
+x_stop = 2.0  # Stopping x value
 
 # Define the symbolic variables
 x_prime, y_prime, q_prime = sp.symbols('x_prime y_prime q_prime')
@@ -46,11 +47,16 @@ for _ in range(n_steps):
     V_prime_values.append(float(V_prime))
     Cp_values.append(float(Cp))
     
+    # Check the stop condition
+    if x_current >= x_stop:
+        break
+    
     # Compute next coordinates using Euler's method
     next_x, next_y = euler_step(x_current, y_current, dt, q_val)
     path.append((next_x, next_y))
 
+
 # Print the results
-for i in range(n_steps):
+for i in range(len(V_prime_values)):
     x, y = path[i]
     print(f"Step {i+1}: Coordinate (x', y') = ({x:.5f}, {y:.5f}), Velocity Modulus V' = {V_prime_values[i]:.5f}, Pressure Coefficient Cp = {Cp_values[i]:.5f}")
