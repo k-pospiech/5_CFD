@@ -70,3 +70,26 @@ plt.ylabel("y'")
 plt.title("Streamline Plot")
 plt.grid(True)
 plt.show()
+
+# Plotting Cp vs x'
+x_values = [coord[0] for coord in path]
+plt.figure(figsize=(10, 5))
+plt.plot(x_values, Cp_values, label='Pressure Coefficient, $C_p$', color='blue')
+plt.title('$C_p$ vs $x\'$')
+plt.xlabel("$x'$")
+plt.ylabel("$C_p$")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Plotting V_prime vs x'
+plt.figure(figsize=(10, 5))
+plt.plot(x_values, V_prime_values, label='Velocity Modulus, $V\'$', color='red')
+plt.title("$V'$ vs $x'$")
+plt.xlabel("$x'$")
+plt.ylabel("$V'$")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
