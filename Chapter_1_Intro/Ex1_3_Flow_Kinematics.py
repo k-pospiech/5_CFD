@@ -43,7 +43,7 @@ def streamline_ODE(t, z):
     return [U_val, V_val]
 
 # Initial condition very close to stagnation point
-z0 = [-0.999, 0.5]
+z0 = [-0.999, 0.001]
 t_eval = np.linspace(0, 5, 1000)
 
 # Solve the ODE
