@@ -1,38 +1,43 @@
-from sympy import symbols, Function, diff, simplify, init_printing, latex
-from sympy.printing import pprint
+from sympy import symbols, Function, diff, Derivative, simplify, Eq, init_printing
 
 # Initialize pretty printing
-init_printing()
+init_printing(use_unicode=True)
 
-# Define the symbolic variables
-U0, R, nu, rho, P0, Pa = symbols('U_0 R nu rho P_0 P_a')
+# Define the symbolic variables and functions
+x, r, nu, rho, P0, Pa, R, U0 = symbols('x r nu rho P_0 P_a R U_0')
+x_tilde, r_tilde = symbols('x_tilde r_tilde')  # Define as separate symbols
+U = Function('U')(x, r)
+V = Function('V')(x, r)
+P = Function('P')(x, r)
 
-# Define dimensionless symbols
-x_tilde, r_tilde = symbols('x_tilde r_tilde')
-U_tilde = Function('U_tilde')(x_tilde, r_tilde)
-V_tilde = Function('V_tilde')(x_tilde, r_tilde)
-P_tilde = Function('P_tilde')(x_tilde, r_tilde)
+# Define dimensionless functions in terms of x and r
+U_tilde = U / U0
+V_tilde = V / U0
+P_tilde = (P - Pa) / (rho * U0**2)
 
-# Define the derivatives for U_tilde and V_tilde
+# Substitute x_tilde = x / R and r_tilde = r / R in the dimensionless functions
+U_tilde = U_tilde.subs({x: x_tilde * R, r: r_tilde * R})
+V_tilde = V_tilde.subs({x: x_tilde * R, r: r_tilde * R})
+P_tilde = P_tilde.subs({x: x_tilde * R, r: r_tilde * R})
+
+# Now take the derivatives with respect to x_tilde and r_tilde
 dU_tilde_dx_tilde = diff(U_tilde, x_tilde)
-dV_tilde_dr_tilde = diff(V_tilde, r_tilde)
 dU_tilde_dr_tilde = diff(U_tilde, r_tilde)
 dV_tilde_dx_tilde = diff(V_tilde, x_tilde)
+dV_tilde_dr_tilde = diff(V_tilde, r_tilde)
 dP_tilde_dx_tilde = diff(P_tilde, x_tilde)
 
-# Dimensionless derivatives needed for the equations
-d2U_tilde_dx_tilde2 = diff(U_tilde, x_tilde, 2)
-d2V_tilde_dr_tilde2 = diff(V_tilde, r_tilde, 2)
+# Define the dimensionless equations
+# Continuity equation
+eq1 = Eq(dU_tilde_dx_tilde + (1/r_tilde) * diff(r_tilde * V_tilde, r_tilde), 0)
 
-# Dimensionless equations based on the provided equations
-dimensionless_equations = [
-    simplify(dU_tilde_dx_tilde + (1/r_tilde) * diff(r_tilde * V_tilde, r_tilde) - dP_tilde_dx_tilde + nu * (d2U_tilde_dx_tilde2 + (1/r_tilde) * diff(r_tilde * dU_tilde_dr_tilde, r_tilde))),
-    simplify(dV_tilde_dx_tilde + dV_tilde_dr_tilde - dP_tilde_dx_tilde + nu * (d2V_tilde_dr_tilde2 + (1/r_tilde) * diff(r_tilde * dV_tilde_dr_tilde, r_tilde) - V_tilde / r_tilde**2))
-]
+# Radial momentum equation
+eq2 = Eq(dU_tilde_dx_tilde + V_tilde*dU_tilde_dr_tilde - dP_tilde_dx_tilde +
+         nu * (diff(U_tilde, x_tilde, x_tilde) + (1/r_tilde) * diff(r_tilde * dU_tilde_dr_tilde, r_tilde)), 0)
 
-# Pretty print the dimensionless equations
-for eq in dimensionless_equations:
-    pprint(eq)
-    print("\nLaTeX representation:")
-    print(latex(eq))
-    print('-'*50)
+# Axial momentum equation
+eq3 = Eq(dV_tilde_dx_tilde + V_tilde*dV_tilde_dr_tilde - (1/rho)*dP_tilde_dx_tilde +
+         nu * (diff(V_tilde, x_tilde, x_tilde) + (1/r_tilde) * diff(r_tilde * dV_tilde_dr_tilde, r_tilde) - V_tilde/r_tilde**2), 0)
+
+# Output the dimensionless equations
+print(eq1, eq2, eq3)
