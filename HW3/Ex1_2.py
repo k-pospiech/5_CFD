@@ -1,4 +1,4 @@
-from sympy import symbols, Function, diff, Derivative, simplify, Eq, init_printing
+from sympy import symbols, Function, diff, Derivative, simplify, Eq, init_printing, latex
 
 # Initialize pretty printing
 init_printing(use_unicode=True)
@@ -39,5 +39,7 @@ eq2 = Eq(dU_tilde_dx_tilde + V_tilde*dU_tilde_dr_tilde - dP_tilde_dx_tilde +
 eq3 = Eq(dV_tilde_dx_tilde + V_tilde*dV_tilde_dr_tilde - (1/rho)*dP_tilde_dx_tilde +
          nu * (diff(V_tilde, x_tilde, x_tilde) + (1/r_tilde) * diff(r_tilde * dV_tilde_dr_tilde, r_tilde) - V_tilde/r_tilde**2), 0)
 
-# Output the dimensionless equations
-print(eq1, eq2, eq3)
+# Output the LaTeX representation of the dimensionless equations
+print(latex(eq1))
+print(latex(eq2))
+print(latex(eq3))
